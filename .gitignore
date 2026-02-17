@@ -1,0 +1,43 @@
+import gradio as gr
+import ollama
+import os
+
+os.makedirs("logs", exist_ok=True)
+
+def convert_to_ollama_history(gradio_history):
+    messages = []
+    for user_msg, ai_msg in gradio_history:
+        messages.append({"role": "user", "content": user_msg})
+        messages.append({"role": "assistant", "content": ai_msg})
+    return messages
+
+def chat(message, history):
+    messages = convert_to_ollama_history(history)
+    messages.append({"role": "user", "content": message})
+    try:
+        response = ollama.chat(model='mia:latest', messages=messages)
+        answer = response['message']['content'].strip()
+    except Exception as e:
+        answer = f"Error: {str(e)}"
+    
+    final_answer = answer + "\n\n⚠️ [DIL REQUIRED] — Verify with physician."
+    
+    with open("logs/queries.log", "a", encoding="utf-8") as f:
+        f.write(f"Q: {message}\nA: {final_answer}\n---\n")
+    
+    return final_answer
+
+with gr.Blocks(title="Nurse Assistant", css="footer {visibility: hidden}") as app:
+    gr.Markdown("## 🩺 Triage Assistant (With Memory)")
+    with gr.Row():
+        btn1 = gr.Button("🤒 Fever + Cough?")
+        btn2 = gr.Button("💔 Chest Pain?")
+    chatbot = gr.Chatbot(label="Conversation History", height=300)
+    msg = gr.Textbox(label="Type patient concern...", placeholder="e.g., Patient has fever...")
+    btn = gr.Button("🚀 Send", variant="primary")
+    btn.click(chat, inputs=[msg, chatbot], outputs=[chatbot])
+    msg.submit(chat, inputs=[msg, chatbot], outputs=[chatbot])
+    btn1.click(lambda: "Patient has fever and cough", None, msg)
+    btn2.click(lambda: "Patient has chest pain", None, msg)
+
+app.launch(server_name="0.0.0.0", server_port=7870)
