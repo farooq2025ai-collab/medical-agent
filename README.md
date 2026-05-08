@@ -1,5 +1,9 @@
 # MIA — Medical Intake Assistant
 
+![MIA — Medical Intake Assistant](MIA.PNG)
+
+**🌐 Live Demo:** [drfarooqai.github.io/medical-agent](https://drfarooqai.github.io/medical-agent/)
+
 An offline, AI-assisted triage support tool for registered nursing staff.  
 Runs entirely on your local machine using **Ollama + Gradio** — no cloud, no data leaves your device.
 
